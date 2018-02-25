@@ -1,0 +1,10 @@
+<!doctype html>
+<title>qualitychat</title>
+	<h1>yo my dude</h1>
+	<a href="/vote/discord/andreas"> vote on andreas</a>
+	<br>
+	{% if logged_in %}
+		<a href="/logout"> logout </a>
+	{% else %}
+		<a href="/login"> login</a>
+	{% endif %}
