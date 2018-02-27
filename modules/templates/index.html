@@ -1,10 +1,27 @@
 <!doctype html>
 <title>qualitychat</title>
-	<h1>yo my dude</h1>
-	<a href="/vote/discord/andreas"> vote on andreas</a>
-	<br>
-	{% if logged_in %}
+	{% if username  %}
+		<div class="header">
+			<h1>yo {{ username }} </h1>
+			<img src="{{ avatar }}" alt="avatar">
+		</div>
+		<br>
+		<div class="body">
+			<ul>
+				<li><a href="/vote/discord/187272038027755520"> vote on bigby</a></li>
+				<li><a href="/vote/discord/336219606081601537"> vote on zeratax</a></li>
+				<li><a href="/vote/irc/peterspark"> vote on peterspark</a></li>
+			</ul>
+		</div>
+		<br>
 		<a href="/logout"> logout </a>
 	{% else %}
-		<a href="/login"> login</a>
+		<div class="header">
+			<h1>yo my dude</h1>
+		</div>
+		<br>
+		<br>
+		<div class="footer">
+			<a href="/login"> login</a>
+		</div>
 	{% endif %}
