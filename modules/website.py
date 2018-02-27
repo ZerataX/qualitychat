@@ -87,8 +87,8 @@ def logout():
 @app.route('/vote/')
 @app.route('/vote/<network>/<name>')
 def vote(network=None, name=None):
-    if 'username' in session:
-        author = session['username']
+    if logged_in():
+        author = session['id']
         user = find_user(name, network)
         return render_template('vote.html',
                                username=user["name"],
