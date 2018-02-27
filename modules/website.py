@@ -1,5 +1,4 @@
 from flask import Flask, session, redirect, url_for, escape, request, abort, render_template
-
 import datetime
 import dateutil.parser
 import requests
@@ -7,6 +6,8 @@ import urllib.parse
 ################################################
 # CONSTANTS
 ################################################
+
+# FLASK
 
 app = Flask(__name__)
 
@@ -22,6 +23,8 @@ D_CLIENT_ID = '396853967390375957'
 D_CLIENT_SECRET = '9j0pa4vaogHpmCV7LztwIHuT-AJCnCTd'
 D_BOT_TOKEN = 'Mzk2ODUzOTY3MzkwMzc1OTU3.DXcfZQ.jN12okZlkzjCt16sWGEzmVsc_cg'
 D_CDN_URI = 'https://cdn.discordapp.com'
+
+
 ################################################
 # ROUTES
 ################################################
@@ -32,6 +35,26 @@ def index():
     if 'username' in session:
         logged_in = True
     return render_template('index.html', logged_in=logged_in)
+    username = False
+    avatar = False
+    if logged_in():
+        if session['type'] == 'discord':
+            user_data = discord_user(session['access_token'])
+            avatar = '%s/avatars/%s/%s.png' % (D_CDN_URI,
+                                               user_data['id'],
+                                               user_data['avatar'])
+            username = user_data['username']
+    return render_template('index.html',
+                           username=username,
+                           avatar=avatar)
+
+
+@app.route('/login')
+def login():
+    return render_template('login.html',
+                           logged_in=logged_in(),
+                           D_CLIENT_ID=D_CLIENT_ID,
+                           REDIRECT_URI=urllib.parse.quote(DOMAIN + "/login/discord"))
 
 
 @app.route('/login/discord')
@@ -100,6 +123,8 @@ def submit():
 ################################################
 # FUNCTIONS
 ################################################
+
+
 def redirect_url(default='index'):
     return request.args.get('next') or \
         request.referrer or \
@@ -126,10 +151,17 @@ def valid_vote(vote, user, author):
 
 
 def find_user(name, network):
-    user = {
-        "name": name,
-        "id": "idtestmeme"
-    }
+    if network == "discord":
+        user_data = discord_user(D_BOT_TOKEN, token_type="Bot", user=name)
+        user = {
+            "name": user_data['username'],
+            "id": user_data['id']
+        }
+    else:
+        user = {
+            "name": name,
+            "id": "idtestmeme"
+        }
     return user
 
 ################################################
