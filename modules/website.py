@@ -98,27 +98,23 @@ def vote(network=None, name=None):
         return redirect(url_for('login'))
 
 
-@app.route('/submit', methods=['POST', 'GET'])
+@app.route('/submit', methods=['POST'])
 def submit():
-    if request.method == 'POST':
-        app.logger.debug('vote received')
-        if not 'username' in session:
-            app.logger.debug('not logged in!')
-            abort(401)
-        if all(req in request.form for req in ('choice', 'user')):
-            author = session['username']
-            user = request.form['user']
-            if author and user:
-                app.logger.debug('{} voting on {}'.format(author, user))
-                if valid_vote(request.form['choice'],
-                              user,
-                              author):
-                    app.logger.debug('succeded')
-                    return render_template('submit.html')
-                app.logger.debug('invalid vote!')
-        abort(400)
-    elif request.method == 'GET':
-        return redirect(url_for('index'))
+    app.logger.debug('validating vote...')
+    if not logged_in():
+        app.logger.debug('not logged in!')
+        abort(401)
+    if all(req in request.form for req in ('choice', 'user')):
+        author = session['id']
+        user = request.form['user']
+        choice = request.form['choice']
+        if author and user:
+            app.logger.debug('{} voting on {}'.format(author, user))
+            if valid_vote(choice, user, author):
+                app.logger.debug('succeded!')
+                return render_template('submit.html')
+            app.logger.debug('invalid vote!')
+    abort(400)
 
 ################################################
 # FUNCTIONS
