@@ -29,12 +29,9 @@ D_CDN_URI = 'https://cdn.discordapp.com'
 # ROUTES
 ################################################
 
+
 @app.route('/')
 def index():
-    logged_in = False
-    if 'username' in session:
-        logged_in = True
-    return render_template('index.html', logged_in=logged_in)
     username = False
     avatar = False
     if logged_in():
