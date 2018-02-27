@@ -1,5 +1,9 @@
 from flask import Flask, session, redirect, url_for, escape, request, abort, render_template
 
+import datetime
+import dateutil.parser
+import requests
+import urllib.parse
 ################################################
 # CONSTANTS
 ################################################
@@ -9,6 +13,15 @@ app = Flask(__name__)
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
+DOMAIN = 'http://localhost:5000'
+
+# DISCORD
+
+D_API_ENDPOINT = 'https://discordapp.com/api/v6'
+D_CLIENT_ID = '396853967390375957'
+D_CLIENT_SECRET = '9j0pa4vaogHpmCV7LztwIHuT-AJCnCTd'
+D_BOT_TOKEN = 'Mzk2ODUzOTY3MzkwMzc1OTU3.DXcfZQ.jN12okZlkzjCt16sWGEzmVsc_cg'
+D_CDN_URI = 'https://cdn.discordapp.com'
 ################################################
 # ROUTES
 ################################################
@@ -21,25 +34,24 @@ def index():
     return render_template('index.html', logged_in=logged_in)
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        app.logger.debug('trying to log in as {}'.format(
-            request.form['username']))
-        if valid_login(request.form['username'],
-                       request.form['password']):
-            app.logger.debug('valid login!')
-            app.logger.debug('setting session')
-            session['username'] = request.form['username']
-        app.logger.debug('invalid login!')
+@app.route('/login/discord')
+def discord_login():
+    code = request.args.get('code')
+    if code:
+        resp = exchange_code(code)
+        user_data = discord_user(resp['access_token'])
+
+        now = datetime.datetime.now()
+        expires = now + datetime.timedelta(seconds=(resp['expires_in'] - 3600))        
+
+        session['id'] = user_data['id']
+        session['type'] = 'discord'
+        session['access_token'] = resp['access_token']
+        session['refresh_token'] = resp['refresh_token']
+        session['expires'] = expires.isoformat()
+
         return redirect(url_for('index'))
-    return '''
-        <form method="post">
-            <p><input type=text name=username>
-            <p><input type=text name=password>
-            <p><input type=submit value=Login>
-        </form>
-    '''
+    abort(400)
 
 
 @app.route('/logout')
@@ -93,6 +105,15 @@ def redirect_url(default='index'):
         request.referrer or \
         url_for(default)
 
+
+def logged_in():
+    if 'expires' in session:
+        expires = dateutil.parser.parse(session['expires'])
+        now = datetime.datetime.now()
+        if now < expires:
+            return True
+    return False
+
 def valid_login(username, password):
     return True
 
@@ -110,3 +131,48 @@ def find_user(name, network):
         "id": "idtestmeme"
     }
     return user
+
+################################################
+# Discord oauth
+################################################
+
+
+def exchange_code(code):
+    data = {
+        'D_CLIENT_ID': D_CLIENT_ID,
+        'D_CLIENT_SECRET': D_CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': DOMAIN + "/login/discord"
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    r = requests.post('%s/oauth2/token' % D_API_ENDPOINT, data, headers)
+    r.raise_for_status()
+    return r.json()
+
+
+def refresh_token(refresh_token):
+    data = {
+        'D_CLIENT_ID': D_CLIENT_ID,
+        'D_CLIENT_SECRET': D_CLIENT_SECRET,
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'redirect_uri': DOMAIN + "/login/discord"
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    r = requests.post('%s/oauth2/token' % D_API_ENDPOINT, data, headers)
+    r.raise_for_status()
+    return r.json()
+
+
+def discord_user(token, token_type="Bearer", user="@me"):
+    headers = {
+        'Authorization': '%s %s' % (token_type, token)
+    }
+    r = requests.get('%s/users/%s' % (D_API_ENDPOINT, user), headers=headers)
+    r.raise_for_status()
+    return r.json()
