@@ -2,26 +2,28 @@
 <title>qualitychat</title>
 	{% if username  %}
 		<div class="header">
-			<h1>yo {{ username }} </h1>
+			<h1>Yo {{ username }}!</h1>
+			{% if avatar  %}
 			<img src="{{ avatar }}" alt="avatar">
+			{% endif  %}
 		</div>
 		<br>
 		<div class="body">
 			<ul>
-				<li><a href="/vote/discord/187272038027755520"> vote on bigby</a></li>
-				<li><a href="/vote/discord/336219606081601537"> vote on zeratax</a></li>
-				<li><a href="/vote/irc/peterspark"> vote on peterspark</a></li>
+				{% for user in users %}
+					<li><a href="/vote/{{ user.network }}/{{ user.name }}">vote on {{ user.nick }}</a></li>
+				{% endfor %}
 			</ul>
 		</div>
 		<br>
-		<a href="/logout"> logout </a>
+		<a href="/logout">logout </a>
 	{% else %}
 		<div class="header">
-			<h1>yo my dude</h1>
+			<h1>Yo my dude!</h1>
 		</div>
 		<br>
 		<br>
 		<div class="footer">
-			<a href="/login"> login</a>
+			<a href="/login">login</a>
 		</div>
 	{% endif %}

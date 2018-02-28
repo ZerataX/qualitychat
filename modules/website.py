@@ -1,9 +1,14 @@
 from flask import Flask, session, redirect, url_for, escape, request, abort, render_template
+import base64
 import datetime
 import dateutil.parser
+import os
 import requests
+import sys
 import urllib.parse
 import yaml
+
+
 ################################################
 # CONSTANTS
 ################################################
@@ -51,7 +56,8 @@ def index():
             username = user_data['username']
     return render_template('index.html',
                            username=username,
-                           avatar=avatar)
+                           avatar=avatar,
+                           users=get_users())
 
 
 @app.route('/login')
@@ -170,29 +176,13 @@ def valid_vote(vote, user, author):
         return False
 
 
-def find_user(name, network):
-    if network == "discord":
-        user_data = discord_user(D_BOT_TOKEN, token_type="Bot", user=name)
-        user = {
-            "name": user_data['username'],
-            "id": user_data['id']
-        }
-    else:
-        user = {
-            "name": name,
-            "id": "idtestmeme"
-        }
-    return user
-
 ################################################
-# Discord oauth
+# discord oauth
 ################################################
 
 
 def exchange_code(code):
     data = {
-        'D_CLIENT_ID': D_CLIENT_ID,
-        'D_CLIENT_SECRET': D_CLIENT_SECRET,
         'client_id': D_CLIENT_ID,
         'client_secret': D_CLIENT_SECRET,
         'grant_type': 'authorization_code',
@@ -209,8 +199,6 @@ def exchange_code(code):
 
 def refresh_token(refresh_token):
     data = {
-        'D_CLIENT_ID': D_CLIENT_ID,
-        'D_CLIENT_SECRET': D_CLIENT_SECRET,
         'client_id': D_CLIENT_ID,
         'client_secret': D_CLIENT_SECRET,
         'grant_type': 'refresh_token',
@@ -232,3 +220,53 @@ def discord_user(token, token_type="Bearer", user="@me"):
     r = requests.get('%s/users/%s' % (D_API_ENDPOINT, user), headers=headers)
     r.raise_for_status()
     return r.json()
+
+
+################################################
+# user info
+################################################
+
+
+def get_users():
+    bigby = {
+        "nick": "KingAmbrose",
+        "name": "187272038027755520",
+        "id": "187272038027755520",
+        "network": "discord"
+    }
+    zeratax = {
+        "nick": "Videotapes",
+        "name": "336219606081601537",
+        "id": "336219606081601537",
+        "network": "discord"
+    }
+    peterspark = {
+        "name": "PetersPark",
+        "nick": "PetersPark",
+        "id": "234543643534534234",
+        "network": "irc"
+    }
+    users = [zeratax, bigby, peterspark]
+    return users
+
+
+def in_server(user_id):
+    for user in get_users():
+        if user_id == user['id']:
+            return True
+    return False
+
+
+def find_user(name, network):
+    if network == "discord":
+        user_data = discord_user(D_BOT_TOKEN, token_type="Bot", user=name)
+        user = {
+            "name": user_data['username'],
+            "id": user_data['id']
+        }
+    else:
+        user = {
+            "name": name,
+            "id": "idtestmeme"
+        }
+    return user
