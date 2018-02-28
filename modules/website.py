@@ -28,6 +28,7 @@ app = Flask(__name__)
 app.secret_key = settings['SECRET']
 
 DOMAIN = settings['DOMAIN']
+NETWORKS = settings['NETWORKS']
 
 # DISCORD
 
@@ -67,11 +68,15 @@ def login():
     state = urllib.parse.quote(base64.encodestring(state).decode("utf-8"))
     redirect_uri = urllib.parse.quote(DOMAIN + "/login/discord")
 
+    discord = False
+    if 'DISCORD' in NETWORKS:
+        discord = True
     return render_template('login.html',
                            logged_in=logged_in(),
                            D_CLIENT_ID=D_CLIENT_ID,
                            redirect_uri=redirect_uri,
-                           state=state)
+                           state=state,
+                           discord=discord)
 
 
 @app.route('/login/discord')
