@@ -3,26 +3,34 @@ import datetime
 import dateutil.parser
 import requests
 import urllib.parse
+import yaml
 ################################################
 # CONSTANTS
 ################################################
+
+
+settings = None
+try:
+    with open('../settings.yaml', 'r') as stream:
+        settings = yaml.load(stream)
+except IOError as e:
+    sys.exit("no settings.yaml found!")
 
 # FLASK
 
 app = Flask(__name__)
 
-# set the secret key.  keep this really secret:
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
+app.secret_key = settings['SECRET']
 
-DOMAIN = 'http://localhost:5000'
+DOMAIN = settings['DOMAIN']
 
 # DISCORD
 
-D_API_ENDPOINT = 'https://discordapp.com/api/v6'
-D_CLIENT_ID = '396853967390375957'
-D_CLIENT_SECRET = '9j0pa4vaogHpmCV7LztwIHuT-AJCnCTd'
-D_BOT_TOKEN = 'Mzk2ODUzOTY3MzkwMzc1OTU3.DXcfZQ.jN12okZlkzjCt16sWGEzmVsc_cg'
-D_CDN_URI = 'https://cdn.discordapp.com'
+D_API_ENDPOINT = settings['DISCORD']['API_ENDPOINT']
+D_CLIENT_ID = settings['DISCORD']['CLIENT_ID']
+D_CLIENT_SECRET = settings['DISCORD']['CLIENT_SECRET']
+D_BOT_TOKEN = settings['DISCORD']['BOT_TOKEN']
+D_CDN_URI = settings['DISCORD']['CDN_URI']
 
 
 ################################################
@@ -166,6 +174,8 @@ def exchange_code(code):
     data = {
         'D_CLIENT_ID': D_CLIENT_ID,
         'D_CLIENT_SECRET': D_CLIENT_SECRET,
+        'client_id': D_CLIENT_ID,
+        'client_secret': D_CLIENT_SECRET,
         'grant_type': 'authorization_code',
         'code': code,
         'redirect_uri': DOMAIN + "/login/discord"
@@ -182,6 +192,8 @@ def refresh_token(refresh_token):
     data = {
         'D_CLIENT_ID': D_CLIENT_ID,
         'D_CLIENT_SECRET': D_CLIENT_SECRET,
+        'client_id': D_CLIENT_ID,
+        'client_secret': D_CLIENT_SECRET,
         'grant_type': 'refresh_token',
         'refresh_token': refresh_token,
         'redirect_uri': DOMAIN + "/login/discord"
