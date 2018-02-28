@@ -48,6 +48,7 @@ D_CDN_URI = settings['DISCORD']['CDN_URI']
 def index():
     user_nick = False
     avatar = False
+    users = []
     if logged_in():
         if session['type'] == 'discord':
             user_data = discord_user(session['access_token'])
@@ -55,10 +56,11 @@ def index():
                                                user_data['id'],
                                                user_data['avatar'])
             user_nick = user_data['username']
+            users = get_users(session['id'])
     return render_template('index.html',
                            user_nick=user_nick,
                            avatar=avatar,
-                           users=get_users())
+                           users=users)
 
 
 @app.route('/login')
@@ -97,10 +99,6 @@ def discord_login():
 
         user_data = discord_user(resp['access_token'])
         user_id = find_user(user_data['id'], 'discord')['id']
-
-        if not in_server(user_id):
-            app.logger.debug('not part of server!')
-            abort(401)
 
         now = datetime.datetime.now()
         expires = now + datetime.timedelta(seconds=resp['expires_in'])
@@ -238,7 +236,7 @@ def discord_user(token, token_type="Bearer", user="@me"):
 ################################################
 
 
-def get_users():
+def get_users(user_id):
     bigby = {
         "nick": "KingAmbrose",
         "name": "187272038027755520",
@@ -259,13 +257,6 @@ def get_users():
     }
     users = [zeratax, bigby, peterspark]
     return users
-
-
-def in_server(user_id):
-    for user in get_users():
-        if user_id == user['id']:
-            return True
-    return False
 
 
 def find_user(name, network):
