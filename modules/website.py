@@ -106,6 +106,10 @@ def discord_login():
         session['refresh_token'] = resp['refresh_token']
         session['expires'] = expires.isoformat()
 
+        if 'return' in session:
+            url = session['return']
+            session.pop('return')
+            return redirect(url)
         return redirect(url_for('index'))
     abort(400)
 
@@ -127,6 +131,7 @@ def vote(network=None, name=None):
                                    user_id=user["id"])
         abort(404)
     else:
+        session['return'] = request.url
         return redirect(url_for('login'))
 
 
