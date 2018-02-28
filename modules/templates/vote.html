@@ -2,7 +2,12 @@
 <title>qualitychat - voting</title>
 	<h1>Yo dude,</h1> 
 	{% if (user_nick and user_id) %}
-		<h2>Voting on {{ user_nick }}</h2> 
+		<div class="header">
+			<h2>voting on {{ user_nick }}!</h2>
+			{% if avatar  %}
+			<img src="{{ avatar }}" alt="avatar">
+			{% endif  %}
+		</div>
 		<div class="voting">
 			<form action="/submit" method="post">
 				<input type="text" hidden="true" name="user" value="{{ user_id }}">

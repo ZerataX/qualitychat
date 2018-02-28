@@ -133,7 +133,8 @@ def vote(network=None, name=None):
         if user:
             return render_template('vote.html',
                                    user_nick=user["nick"],
-                                   user_id=user["id"])
+                                   user_id=user["id"],
+                                   avatar=user["avatar"])
         abort(404)
     else:
         session['return'] = request.url
@@ -270,15 +271,20 @@ def in_server(user_id):
 def find_user(name, network):
     if network == "discord":
         user_data = discord_user(D_BOT_TOKEN, token_type="Bot", user=name)
+        avatar = '%s/avatars/%s/%s.png' % (D_CDN_URI,
+                                           user_data['id'],
+                                           user_data['avatar'])
         user = {
             "nick": user_data['username'],
             "name": user_data['id'],
-            "id": user_data['id']
+            "id": user_data['id'],
+            "avatar": avatar
         }
     else:
         user = {
             "nick": name,
             "name": name,
-            "id": "idtestmeme"
+            "id": "idtestmeme",
+            "avatar": False
         }
     return user
