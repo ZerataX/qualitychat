@@ -56,23 +56,45 @@ def index():
 
 @app.route('/login')
 def login():
+    state = os.urandom(24)
+    session['state'] = state
+    state = urllib.parse.quote(base64.encodestring(state).decode("utf-8"))
+    redirect_uri = urllib.parse.quote(DOMAIN + "/login/discord")
+
     return render_template('login.html',
                            logged_in=logged_in(),
                            D_CLIENT_ID=D_CLIENT_ID,
-                           REDIRECT_URI=urllib.parse.quote(DOMAIN + "/login/discord"))
+                           redirect_uri=redirect_uri,
+                           state=state)
 
 
 @app.route('/login/discord')
 def discord_login():
     code = request.args.get('code')
-    if code:
-        resp = exchange_code(code)
+    state = request.args.get('state')
+    if code and state:
+        state = base64.b64decode(urllib.parse.unquote(state))
+        if not state == session['state']:
+            app.logger.warning('state could not be validated!')
+            abort(401)
+        try:
+            resp = exchange_code(code)
+        except requests.exceptions.RequestException as e:
+            app.logger.debug('could not log in with discord!')
+            app.logger.debug(e)
+            abort(401)
+
         user_data = discord_user(resp['access_token'])
+        user_id = find_user(user_data['id'], 'discord')['id']
+
+        if not in_server(user_id):
+            app.logger.debug('not part of server!')
+            abort(401)
 
         now = datetime.datetime.now()
-        expires = now + datetime.timedelta(seconds=(resp['expires_in'] - 3600))        
+        expires = now + datetime.timedelta(seconds=resp['expires_in'])
 
-        session['id'] = user_data['id']
+        session['id'] = user_id
         session['type'] = 'discord'
         session['access_token'] = resp['access_token']
         session['refresh_token'] = resp['refresh_token']
@@ -84,7 +106,6 @@ def discord_login():
 
 @app.route('/logout')
 def logout():
-    # remove the username from the session if it's there
     session.clear()
     return redirect(url_for('index'))
 
@@ -93,12 +114,12 @@ def logout():
 @app.route('/vote/<network>/<name>')
 def vote(network=None, name=None):
     if logged_in():
-        author = session['id']
         user = find_user(name, network)
-        return render_template('vote.html',
-                               username=user["name"],
-                               user_id=user["id"],
-                               author=author)
+        if user:
+            return render_template('vote.html',
+                                   username=user["name"],
+                                   user_id=user["id"])
+        abort(404)
     else:
         return redirect(url_for('login'))
 
@@ -119,7 +140,8 @@ def submit():
                 app.logger.debug('succeded!')
                 return render_template('submit.html')
             app.logger.debug('invalid vote!')
-    abort(400)
+    return redirect(redirect_url())
+
 
 ################################################
 # FUNCTIONS
@@ -139,9 +161,6 @@ def logged_in():
         if now < expires:
             return True
     return False
-
-def valid_login(username, password):
-    return True
 
 
 def valid_vote(vote, user, author):
