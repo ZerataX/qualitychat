@@ -1,8 +1,8 @@
 <!doctype html>
 <title>qualitychat</title>
-	{% if username  %}
+	{% if user_nick  %}
 		<div class="header">
-			<h1>Yo {{ username }}!</h1>
+			<h1>Yo {{ user_nick }}!</h1>
 			{% if avatar  %}
 			<img src="{{ avatar }}" alt="avatar">
 			{% endif  %}

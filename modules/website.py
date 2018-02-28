@@ -45,7 +45,7 @@ D_CDN_URI = settings['DISCORD']['CDN_URI']
 
 @app.route('/')
 def index():
-    username = False
+    user_nick = False
     avatar = False
     if logged_in():
         if session['type'] == 'discord':
@@ -53,9 +53,9 @@ def index():
             avatar = '%s/avatars/%s/%s.png' % (D_CDN_URI,
                                                user_data['id'],
                                                user_data['avatar'])
-            username = user_data['username']
+            user_nick = user_data['username']
     return render_template('index.html',
-                           username=username,
+                           user_nick=user_nick,
                            avatar=avatar,
                            users=get_users())
 
@@ -123,7 +123,7 @@ def vote(network=None, name=None):
         user = find_user(name, network)
         if user:
             return render_template('vote.html',
-                                   username=user["name"],
+                                   user_nick=user["nick"],
                                    user_id=user["id"])
         abort(404)
     else:
@@ -261,11 +261,13 @@ def find_user(name, network):
     if network == "discord":
         user_data = discord_user(D_BOT_TOKEN, token_type="Bot", user=name)
         user = {
-            "name": user_data['username'],
+            "nick": user_data['username'],
+            "name": user_data['id'],
             "id": user_data['id']
         }
     else:
         user = {
+            "nick": name,
             "name": name,
             "id": "idtestmeme"
         }

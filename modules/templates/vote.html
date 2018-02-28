@@ -1,8 +1,8 @@
 <!doctype html>
 <title>qualitychat - voting</title>
 	<h1>Yo dude,</h1> 
-	{% if (username and user_id) %}
-		<h2>Voting on {{ username }}</h2> 
+	{% if (user_nick and user_id) %}
+		<h2>Voting on {{ user_nick }}</h2> 
 		<div class="voting">
 			<form action="/submit" method="post">
 				<input type="text" hidden="true" name="user" value="{{ user_id }}">
