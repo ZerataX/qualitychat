@@ -1,25 +1,20 @@
 <!doctype html>
 <title>qualitychat - voting</title>
-
-{% if author %}
 	<h1>Yo dude,</h1> 
 	{% if (username and user_id) %}
 		<h2>Voting on {{ username }}</h2> 
 		<div class="voting">
-		    <form action="/submit" method="post">
-		    	<input type="text" hidden="true" name="user" value="{{ user_id }}">
-		    	<div class="choices">
-			        <input type="radio" name="choice" value="good"> good
-			        <br>
-			        <input type="radio" name="choice" value="bad"> bad
-			        <br>
-			    </div>
-		        <input type="submit" value="Submit">
-		    </form>
+			<form action="/submit" method="post">
+				<input type="text" hidden="true" name="user" value="{{ user_id }}">
+				<div class="choices">
+					<input type="radio" name="choice" value="good"> good
+					<br>
+					<input type="radio" name="choice" value="bad"> bad
+					<br>
+				</div>
+				<input type="submit" value="Submit">
+			</form>
 		</div>
 	{% else %}
 		<h2>no user found with that name</h2> 
 	{% endif %}
-    {% else %}
-    <h1>you need to be logged in!</h1>
-{% endif %}

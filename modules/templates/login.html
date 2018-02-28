@@ -1,10 +1,12 @@
 <!doctype html>
 <title>qualitychat - login</title>
 	{% if logged_in %}
-		<h1>already logged in!</h1>
-		<a href="/logout"> logout </a>
+		<h1>Already logged in!</h1>
+		<a href="/logout">logout </a>
 	{% else %}
-		<h1>login with</h1>
-		<a href="https://discordapp.com/api/oauth2/authorize?client_id={{ CLIENT_ID }}&redirect_uri={{ REDIRECT_URI }}&response_type=code&scope=identify"> discord</a>
+		<h1>Login with:</h1>
+		<ul>
+			<li><a href="https://discordapp.com/api/oauth2/authorize?client_id={{ D_CLIENT_ID }}&redirect_uri={{ redirect_uri }}&state={{ state }}&response_type=code&scope=identify">discord</a></li>
+		</ul>
 		<br>
 	{% endif %}
